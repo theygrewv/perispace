@@ -19,24 +19,22 @@
     </header>
 
     <main class="content-grid">
-        <section class="card vault">
-            <h3>Vault & Audio Hub</h3>
-            <div class="audio-controls">
-                <button id="record-btn" class="btn">Record Memo</button>
-                <audio id="audio-preview" controls style="display:none;"></audio>
-                <button id="save-audio-btn" class="btn btn-outline" style="display:none;">Save Memo to Vault</button>
-            </div>
-            <textarea id="vault-input" placeholder="Enter notes or save audio memos..."></textarea>
-        </section>
+    <section class="card vault">
+        <h3>Vault & Audio Hub</h3>
+        <div class="audio-controls">
+            <button id="record-btn" class="btn">Record Memo</button>
+            <audio id="audio-preview" controls style="display:none;"></audio>
+            <button id="save-audio-btn" class="btn btn-outline" style="display:none;">Save to Vault</button>
+        </div>
+        
+        <textarea id="vault-input" placeholder="Notes..."></textarea>
 
-        <section class="card tasks">
-            <h3>Task List</h3>
-            <div class="input-row">
-                <input type="text" id="new-task" placeholder="Add new task...">
-                <button onclick="addTask()" class="btn-add">+</button>
-            </div>
-            <ul id="task-list"></ul>
-        </section>
+        <div id="media-gallery">
+            <h4>Saved Audio Memos</h4>
+            <div id="audio-list"></div>
+        </div>
+    </section>
+    
     </main>
 </div>
 
