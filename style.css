@@ -86,5 +86,39 @@ textarea {
     filter: invert(1); /* Makes the default player match dark mode */
 }
 
+#media-gallery {
+    margin-top: 15px;
+    border-top: 1px solid #444;
+    padding-top: 10px;
+    overflow-y: auto;
+    max-height: 150px; /* Keeps it from expanding too far */
+}
+
+.saved-audio-item {
+    background: #222831;
+    padding: 8px;
+    margin-bottom: 8px;
+    border-radius: 5px;
+    border-left: 3px solid #00adb5;
+}
+
+.saved-audio-item audio {
+    width: 100%;
+    height: 30px;
+    filter: invert(1);
+    margin-top: 5px;
+}
+
+.btn-del {
+    background: #ff4b2b;
+    color: white;
+    border: none;
+    font-size: 10px;
+    padding: 2px 5px;
+    cursor: pointer;
+    border-radius: 3px;
+    margin-top: 5px;
+}
+
 ul { list-style: none; padding: 0; overflow-y: auto; }
 li { padding: 10px; border-bottom: 1px solid #444; display: flex; justify-content: space-between; }
