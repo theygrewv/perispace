@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Perispace v14.5</title>
+    <title>Perispace v14.7</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
 </head>
@@ -16,19 +16,24 @@
 
     <main>
         <div id="p-cap" class="page active">
-            <div id="audio-hud" style="display:none; background:var(--panel); border:1px solid var(--danger); padding:15px; border-radius:10px; margin-bottom:15px; align-items:center; gap:15px;">
-                <div style="width:12px; height:12px; background:var(--danger); border-radius:50%; animation: pulse-red 1s infinite;"></div>
-                <span style="font-size:0.8rem; flex:1;">RECORDING...</span>
+            <div id="shift-hud">
+                <div class="shift-meta"><span>SHIFT PROGRESS</span><span id="shift-percent">0%</span></div>
+                <div class="progress-track"><div id="shift-bar"></div></div>
+                <div class="shift-meta"><span id="shift-start-label">00:00</span><span id="shift-end-label">00:00</span></div>
+            </div>
+            
+            <div id="audio-hud" style="display:none; background:var(--panel); border:1px solid var(--danger); padding:10px; border-radius:10px; margin-bottom:10px; align-items:center; gap:10px;">
+                <div style="width:10px; height:10px; background:var(--danger); border-radius:50%; animation: pulse-red 1s infinite;"></div>
+                <span id="mic-status" style="font-size:0.7rem; flex:1;">RECORDING SIGNAL...</span>
                 <button onclick="stopRecording()" class="btn" style="width:auto; margin:0; padding:5px 10px; border-color:var(--danger); color:var(--danger);">STOP</button>
             </div>
 
-            <div id="pending-media" style="display:none; margin-bottom:15px;"></div>
+            <div id="pending-media" style="display:none; margin-bottom:10px;"></div>
 
             <div style="display:flex; gap:10px;">
                 <button id="mic-btn" class="btn" style="flex:2; border-color:var(--danger); color:var(--danger);" onclick="startRecording()">🎤 SIGNAL</button>
                 <button class="btn" style="flex:1" onclick="captureImage()">📸 SNAP</button>
             </div>
-            
             <textarea id="t-in" placeholder="Translate context..."></textarea>
             <button class="btn" style="border-color:var(--accent); color:var(--accent);" onclick="saveEverything()">💾 Sync Transmission</button>
         </div>
@@ -42,6 +47,11 @@
             <span class="page-title">Flight Plan / Targets</span>
             <input type="text" id="t-input" placeholder="New target..."><button class="btn" onclick="addTask()">ENGAGE</button>
             <div id="active-list"></div>
+            <div style="margin-top:20px; border-top:1px solid #222; padding-top:20px;">
+                <span class="page-title">Orbital Scheduler</span>
+                <div class="setting-row"><span>SHIFT START</span><input type="time" id="work-start" onchange="updateShiftTimes()"></div>
+                <div class="setting-row"><span>SHIFT END</span><input type="time" id="work-end" onchange="updateShiftTimes()"></div>
+            </div>
         </div>
 
         <div id="wb-page">
@@ -54,20 +64,15 @@
 
         <div id="p-sys" class="page">
             <button class="btn" style="border-color:var(--gold); color:var(--gold);" onclick="toggleLexicon()">📖 PERISPACE MANUAL</button>
-            <div style="display:flex; gap:10px;">
-                <button class="btn" style="flex:1" onclick="exportBrain()">📤 EXPORT</button>
-                <button class="btn" style="flex:1" onclick="document.getElementById('import-file').click()">📥 IMPORT</button>
-            </div>
-            <input type="file" id="import-file" style="display:none" onchange="importBrain(this)">
-            <button class="btn" style="border-color:var(--danger); color:var(--danger); margin-top:20px;" onclick="wipe()">⚠️ WIPE CACHE</button>
+            <button class="btn" style="border-color:var(--danger); color:var(--danger);" onclick="wipe()">⚠️ WIPE CACHE</button>
         </div>
     </main>
 
     <div id="lex-hud">
-        <h2>PERISPACE INDEX</h2>
-        <div style="flex:1; overflow-y:auto; line-height:1.6; font-size:0.85rem;">
-            <p><b>DROP-IN</b>: Capture media first, then add text, then Sync to save them together.</p>
-            <p><b>SPACE</b>: Corner handle to resize. Touch a shard to bring to front.</p>
+        <h2>PERISPACE MANUAL</h2>
+        <div style="flex:1; overflow-y:auto; font-size:0.8rem; line-height:1.6;">
+            <p><b>AUDIO</b>: Convert voice to permanent shards via Sync button.</p>
+            <p><b>SPACE</b>: Shard controls only appear inside this tab. Long-drag corner to resize.</p>
         </div>
         <button class="btn" onclick="toggleLexicon()">CLOSE</button>
     </div>
