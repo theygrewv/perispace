@@ -1,4 +1,6 @@
-let currentOrbit = 'inner', tStartX=0, currentEl=null, px=-1500, py=-1500, scale=1;
+// Updated for multi-device stability (Pixel 9 + FydeOS)
+let currentOrbit = 'inner', tStartX=0, currentEl=null, px=0, py=0, scale=1;
+ currentEl=null, px=-1500, py=-1500, scale=1;
 
 /** * 1. SYSTEM INITIALIZATION 
  */

@@ -34,3 +34,15 @@ textarea, input { width: 100%; background: #050505; color: #fff; border: 1px sol
 nav { display: grid; grid-template-columns: repeat(5, 1fr); background: #0a0a0a; border-top: 1px solid #222; min-height: 75px; padding-bottom: env(safe-area-inset-bottom, 15px); }
 nav button { background: none; border: none; color: #444; font-size: 9px; font-weight: bold; text-transform: uppercase; }
 nav button.active { color: var(--accent); }
+/* Prevent system gestures from breaking the app logic */
+.card {
+    touch-action: pan-y; /* Allows vertical scrolling but locks horizontal for our swipe-delete */
+    user-select: none;   /* Prevents accidental text highlighting while swiping */
+}
+
+/* Optional: Keep the app centered on the HP Envy screen */
+main {
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+}
