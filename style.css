@@ -73,5 +73,18 @@ textarea {
     color: #00adb5;
 }
 
+.audio-controls {
+    margin-bottom: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+#audio-preview {
+    height: 35px;
+    filter: invert(1); /* Makes the default player match dark mode */
+}
+
 ul { list-style: none; padding: 0; overflow-y: auto; }
 li { padding: 10px; border-bottom: 1px solid #444; display: flex; justify-content: space-between; }
