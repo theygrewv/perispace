@@ -2,89 +2,45 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Perispace v14.8</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perispace | Brain</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00adb5">
 </head>
-<body onload="boot()">
-    <div id="orbit-nav">
-        <div id="btn-inner" class="orbit-btn" onclick="setOrbit('inner')">INNER</div>
-        <div id="btn-outer" class="orbit-btn" onclick="setOrbit('outer')">OUTER</div>
-        <div id="btn-deep" class="orbit-btn" onclick="setOrbit('deep')">DEEP</div>
+<body>
+
+    <div class="container">
+        <section class="peribrain-controls">
+            <h3>Brain Intervals</h3>
+            <div class="button-group">
+                <button onclick="startTimer(15, 'Short Break')" class="btn-break">15m Break</button>
+                <button onclick="startTimer(60, 'Lunch Break')" class="btn-lunch">1hr Lunch</button>
+            </div>
+            <div id="timer-display">Status: Ready</div>
+        </section>
+
+        <section class="workspace">
+            <div class="vault-container">
+                <h3>Vault</h3>
+                <textarea id="vault-input" placeholder="Secure thoughts here..."></textarea>
+            </div>
+
+            <div class="tasks-container">
+                <h3>Tasks</h3>
+                <div class="task-input-group">
+                    <input type="text" id="new-task" placeholder="Next mission...">
+                    <button onclick="addTask()" class="btn-add">+</button>
+                </div>
+                <ul id="task-list"></ul>
+            </div>
+        </section>
+
+        <canvas id="infinite-canvas"></canvas>
     </div>
 
-    <main>
-        <div id="p-cap" class="page active">
-            <div id="shift-hud">
-                <div class="shift-meta"><span>SHIFT PROGRESS</span><span id="shift-percent">0%</span></div>
-                <div class="progress-track"><div id="shift-bar"></div></div>
-                <div class="shift-meta"><span id="shift-start-label">00:00</span><span id="shift-end-label">00:00</span></div>
-            </div>
-            
-            <div id="audio-hud" style="display:none; background:var(--panel); border:1px solid var(--danger); padding:10px; border-radius:10px; margin-bottom:10px; align-items:center; gap:10px;">
-                <div style="width:10px; height:10px; background:var(--danger); border-radius:50%; animation: pulse-red 1s infinite;"></div>
-                <span style="font-size:0.7rem; flex:1;">RECORDING SIGNAL...</span>
-                <button onclick="stopRecording()" class="btn" style="width:auto; margin:0; padding:5px 10px; border-color:var(--danger); color:var(--danger);">STOP</button>
-            </div>
+    <audio id="alert-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
 
-            <div id="pending-media" style="display:none; margin-bottom:10px;"></div>
-
-            <div style="display:flex; gap:10px;">
-                <button id="mic-btn" class="btn" style="flex:2; border-color:var(--danger); color:var(--danger);" onclick="startRecording()">🎤 SIGNAL</button>
-                <button class="btn" style="flex:1" onclick="captureImage()">📸 SNAP</button>
-            </div>
-            <textarea id="t-in" placeholder="Translate context..."></textarea>
-            <button class="btn" style="border-color:var(--accent); color:var(--accent);" onclick="saveEverything()">💾 Sync Transmission</button>
-        </div>
-
-        <div id="p-vault" class="page">
-            <span class="page-title">Archive / The Vault</span>
-            <div id="v-list"></div>
-        </div>
-
-        <div id="p-tasks" class="page">
-            <span class="page-title">Flight Plan / Targets</span>
-            <input type="text" id="t-input" placeholder="New target..."><button class="btn" onclick="addTask()">ENGAGE</button>
-            <div id="active-list"></div>
-            <div style="margin-top:20px; border-top:1px solid #222; padding-top:20px;">
-                <span class="page-title">Orbital Scheduler</span>
-                <div class="setting-row"><span>SHIFT START</span><input type="time" id="work-start" onchange="updateShiftTimes()"></div>
-                <div class="setting-row"><span>SHIFT END</span><input type="time" id="work-end" onchange="updateShiftTimes()"></div>
-            </div>
-        </div>
-
-        <div id="wb-page">
-            <div id="wb-canvas"></div>
-            <div id="wb-controls">
-                <button onclick="addVisualShard()" class="wb-btn" style="background:var(--gold);">🖼️</button>
-                <button onclick="addNote()" class="wb-btn" style="background:var(--accent);">+</button>
-            </div>
-        </div>
-
-        <div id="p-sys" class="page">
-            <button class="btn" style="border-color:var(--gold); color:var(--gold);" onclick="toggleLexicon()">📖 PERISPACE MANUAL</button>
-            <button class="btn" style="border-color:var(--danger); color:var(--danger);" onclick="wipe()">⚠️ WIPE CACHE</button>
-        </div>
-    </main>
-
-    <nav>
-        <button onclick="go('p-cap', this)" class="active">Capture</button>
-        <button onclick="go('p-vault', this)">Vault</button>
-        <button onclick="go('p-tasks', this)">Plan</button>
-        <button onclick="go('wb-page', this)">Space</button>
-        <button onclick="go('p-sys', this)">System</button>
-    </nav>
-
-    <div id="lex-hud">
-        <h2>PERISPACE MANUAL</h2>
-        <div style="flex:1; overflow-y:auto; font-size:0.8rem; line-height:1.6;">
-            <p><b>STABILIZED</b>: Tabs are now locked to the primary viewport.</p>
-            <p><b>AUDIO</b>: Playback enabled for both pending and archived signals.</p>
-        </div>
-        <button class="btn" onclick="toggleLexicon()">CLOSE</button>
-    </div>
-
-    <script src="script.js"></script>
+    <script src="peribrain.js"></script>
 </body>
 </html>
