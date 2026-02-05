@@ -3,44 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perispace | Brain</title>
+    <title>Perispace - Peribrain</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#00adb5">
 </head>
 <body>
 
-    <div class="container">
-        <section class="peribrain-controls">
-            <h3>Brain Intervals</h3>
-            <div class="button-group">
-                <button onclick="startTimer(15, 'Short Break')" class="btn-break">15m Break</button>
-                <button onclick="startTimer(60, 'Lunch Break')" class="btn-lunch">1hr Lunch</button>
+    <div class="main-container">
+        <header class="peribrain-header">
+            <h2>Peribrain Control</h2>
+            <div class="timer-section">
+                <button onclick="startTimer(15, 'Short Break')" class="btn">15m Break</button>
+                <button onclick="startTimer(60, 'Lunch Break')" class="btn btn-outline">1hr Lunch</button>
+                <div id="timer-display">Ready</div>
             </div>
-            <div id="timer-display">Status: Ready</div>
-        </section>
+        </header>
 
-        <section class="workspace">
-            <div class="vault-container">
+        <main class="content-grid">
+            <section class="card vault">
                 <h3>Vault</h3>
-                <textarea id="vault-input" placeholder="Secure thoughts here..."></textarea>
-            </div>
+                <textarea id="vault-input" placeholder="Enter notes..."></textarea>
+            </section>
 
-            <div class="tasks-container">
-                <h3>Tasks</h3>
-                <div class="task-input-group">
-                    <input type="text" id="new-task" placeholder="Next mission...">
+            <section class="card tasks">
+                <h3>Task List</h3>
+                <div class="input-row">
+                    <input type="text" id="new-task" placeholder="Add new task...">
                     <button onclick="addTask()" class="btn-add">+</button>
                 </div>
                 <ul id="task-list"></ul>
-            </div>
-        </section>
-
-        <canvas id="infinite-canvas"></canvas>
+            </section>
+        </main>
     </div>
 
-    <audio id="alert-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
-
+    <audio id="alert-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
     <script src="peribrain.js"></script>
 </body>
 </html>
