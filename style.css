@@ -1,86 +1,77 @@
-:root {
-    --bg-dark: #222831;
-    --bg-light: #393e46;
-    --primary: #00adb5;
-    --text: #eeeeee;
-}
-
 body {
-    background-color: var(--bg-dark);
-    color: var(--text);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #222831;
+    color: #eeeeee;
+    font-family: sans-serif;
     margin: 0;
-    overflow: hidden; /* Keeps canvas infinite */
-}
-
-.container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
     padding: 20px;
-    box-sizing: border-box;
-    z-index: 10;
-    position: relative;
-    pointer-events: none; /* Allows drawing "through" empty space */
 }
 
-.container > * { pointer-events: auto; }
+.main-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
 
-/* Control Center */
-.peribrain-controls {
-    background: var(--bg-light);
-    padding: 15px;
-    border-radius: 12px;
-    border: 1px solid var(--primary);
+.peribrain-header {
+    background: #393e46;
+    padding: 20px;
+    border-radius: 10px;
     text-align: center;
-    max-width: 400px;
-    margin: 0 auto 20px;
+    margin-bottom: 20px;
+    border-bottom: 3px solid #00adb5;
 }
 
-.button-group { display: flex; gap: 10px; justify-content: center; margin-bottom: 10px; }
-
-button {
-    padding: 10px 15px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-    transition: 0.3s;
+.timer-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
 }
-
-.btn-break { background: var(--primary); color: var(--text); }
-.btn-lunch { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
-.btn-add { background: var(--primary); color: var(--text); }
 
 #timer-display {
-    font-family: 'Courier New', monospace;
-    font-size: 1.2rem;
-    color: var(--primary);
-    text-shadow: 0 0 5px rgba(0, 173, 181, 0.5);
+    font-family: monospace;
+    font-size: 1.5rem;
+    color: #00adb5;
+    min-width: 100px;
 }
 
-/* Vault & Tasks */
-.workspace { display: flex; gap: 20px; flex-grow: 1; }
-.vault-container, .tasks-container {
-    background: rgba(57, 62, 70, 0.8);
-    padding: 15px;
-    border-radius: 12px;
-    flex: 1;
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.card {
+    background: #393e46;
+    padding: 20px;
+    border-radius: 10px;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
 }
 
 textarea {
-    width: 100%;
-    height: 80%;
-    background: transparent;
-    border: none;
-    color: var(--text);
+    flex-grow: 1;
+    background: #222831;
+    color: #eee;
+    border: 1px solid #444;
+    padding: 10px;
     resize: none;
 }
 
-/* Canvas */
-#infinite-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1;
+.btn {
+    background: #00adb5;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
 }
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid #00adb5;
+    color: #00adb5;
+}
+
+ul { list-style: none; padding: 0; overflow-y: auto; }
+li { padding: 10px; border-bottom: 1px solid #444; display: flex; justify-content: space-between; }
