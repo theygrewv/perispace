@@ -1,124 +1,39 @@
-body {
-    background-color: #222831;
-    color: #eeeeee;
-    font-family: sans-serif;
-    margin: 0;
-    padding: 20px;
+:root {
+    --space-black: #0b0e14;
+    --deep-grey: #1a1d23;
+    --neon-teal: #00adb5;
+    --star-white: #eeeeee;
+    --warning-red: #ff4b2b;
 }
 
-.main-container {
-    max-width: 900px;
-    margin: 0 auto;
+body { background-color: var(--space-black); color: var(--star-white); font-family: sans-serif; margin: 0; }
+.stars-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #1b2735 0%, #090a0f 100%); z-index: -1; }
+
+.peribrain-header { position: relative; border: 1px solid var(--neon-teal); padding: 20px; border-radius: 15px; background: rgba(26, 29, 35, 0.8); text-align: center; margin: 20px; }
+
+/* Pulse Animation for Recording */
+#status-light {
+    position: absolute; top: 15px; left: 20px; width: 12px; height: 12px;
+    background: #444; border-radius: 50%; transition: 0.3s;
 }
 
-.peribrain-header {
-    background: #393e46;
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-    margin-bottom: 20px;
-    border-bottom: 3px solid #00adb5;
+.recording-active #status-light {
+    background: var(--warning-red);
+    box-shadow: 0 0 10px var(--warning-red);
+    animation: pulse 1.5s infinite;
 }
 
-.timer-section {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-}
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
-#timer-display {
-    font-family: monospace;
-    font-size: 1.5rem;
-    color: #00adb5;
-    min-width: 100px;
-}
+.workspace-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; padding: 0 20px; }
+.module { background: var(--deep-grey); padding: 20px; border-radius: 12px; border: 1px solid #333; height: 75vh; display: flex; flex-direction: column; overflow-y: auto; }
 
-.content-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
+#capture-preview-zone { background: #000; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px dashed var(--neon-teal); }
+#media-caption { width: 90%; background: #111; color: #fff; border: 1px solid var(--neon-teal); padding: 8px; margin-top: 10px; }
+#camera-stream, #image-preview { width: 100%; border-radius: 5px; margin-top: 10px; }
 
-.card {
-    background: #393e46;
-    padding: 20px;
-    border-radius: 10px;
-    height: 400px;
-    display: flex;
-    flex-direction: column;
-}
+.btn-action { background: #333; color: var(--neon-teal); border: 1px solid var(--neon-teal); padding: 5px 10px; cursor: pointer; border-radius: 4px; }
+.btn-save { background: var(--neon-teal); color: #000; border: none; padding: 10px; margin-top: 10px; cursor: pointer; font-weight: bold; width: 100%; }
 
-textarea {
-    flex-grow: 1;
-    background: #222831;
-    color: #eee;
-    border: 1px solid #444;
-    padding: 10px;
-    resize: none;
-}
-
-.btn {
-    background: #00adb5;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.btn-outline {
-    background: transparent;
-    border: 1px solid #00adb5;
-    color: #00adb5;
-}
-
-.audio-controls {
-    margin-bottom: 15px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center;
-}
-
-#audio-preview {
-    height: 35px;
-    filter: invert(1); /* Makes the default player match dark mode */
-}
-
-#media-gallery {
-    margin-top: 15px;
-    border-top: 1px solid #444;
-    padding-top: 10px;
-    overflow-y: auto;
-    max-height: 150px; /* Keeps it from expanding too far */
-}
-
-.saved-audio-item {
-    background: #222831;
-    padding: 8px;
-    margin-bottom: 8px;
-    border-radius: 5px;
-    border-left: 3px solid #00adb5;
-}
-
-.saved-audio-item audio {
-    width: 100%;
-    height: 30px;
-    filter: invert(1);
-    margin-top: 5px;
-}
-
-.btn-del {
-    background: #ff4b2b;
-    color: white;
-    border: none;
-    font-size: 10px;
-    padding: 2px 5px;
-    cursor: pointer;
-    border-radius: 3px;
-    margin-top: 5px;
-}
-
-ul { list-style: none; padding: 0; overflow-y: auto; }
-li { padding: 10px; border-bottom: 1px solid #444; display: flex; justify-content: space-between; }
+.saved-item { background: #0b0e14; padding: 10px; margin-top: 10px; border-radius: 5px; border-left: 3px solid var(--neon-teal); }
+.saved-item img { max-width: 100%; margin-top: 5px; }
