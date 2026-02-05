@@ -15,30 +15,45 @@ function setStatus(active) {
 
 // --- CAMERA CAPTURE ---
 const camBtn = document.getElementById('camera-btn');
+const shutterBtn = document.getElementById('shutter-btn');
 const video = document.getElementById('camera-stream');
+const imgPreview = document.getElementById('image-preview');
 
 camBtn.onclick = async () => {
-    setStatus(true);
-    previewZone.style.display = "block";
-    video.style.display = "block";
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    video.srcObject = stream;
-    
-    camBtn.innerText = "Snap";
-    camBtn.onclick = () => {
-        const canvas = document.getElementById('photo-cap');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
-        currentMediaData = canvas.toDataURL('image/png');
-        currentMediaType = 'image';
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        video.style.display = "block";
+        previewZone.style.display = "block";
+        shutterBtn.style.display = "block"; // Show the shutter now
+        setStatus(true); // Pulse the status light
         
-        stream.getTracks().forEach(t => t.stop());
-        video.style.display = "none";
-        document.getElementById('image-preview').src = currentMediaData;
-        document.getElementById('image-preview').style.display = "block";
-        setStatus(false);
-    };
+        // Save stream reference to stop it later
+        window.localStream = stream;
+    } catch (err) {
+        alert("Camera access denied or not found.");
+    }
+};
+
+shutterBtn.onclick = () => {
+    const canvas = document.getElementById('photo-cap');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    
+    currentMediaData = canvas.toDataURL('image/png');
+    currentMediaType = 'image';
+    
+    // Stop the camera stream
+    window.localStream.getTracks().forEach(track => track.stop());
+    
+    // Update UI
+    video.style.display = "none";
+    shutterBtn.style.display = "none";
+    imgPreview.src = currentMediaData;
+    imgPreview.style.display = "block";
+    setStatus(false);
+};
 };
 
 // --- FILE PICKER ---
