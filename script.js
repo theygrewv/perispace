@@ -26,7 +26,7 @@ function setOrbit(o) {
     renderTasks(); renderV();
 }
 
-/* --- CAPTURE ENGINES (Fixed Audio Playback) --- */
+/* --- MEDIA ENGINES --- */
 async function startRecording() {
     try {
         const s = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -38,7 +38,7 @@ async function startRecording() {
             s.getTracks().forEach(t => t.stop());
         };
         mediaRecorder.start(); pulse(50); document.getElementById('audio-hud').style.display = 'flex';
-    } catch (err) { alert("Mic Error. Check Permissions."); }
+    } catch (err) { alert("Mic Permission Denied."); }
 }
 
 function stopRecording() { if (mediaRecorder?.state !== "inactive") { mediaRecorder.stop(); document.getElementById('audio-hud').style.display = 'none'; pulse(20); } }
@@ -69,20 +69,7 @@ function saveEverything() {
     localStorage.setItem('pb_v12_vault', JSON.stringify(v)); i.value = ''; clearPending(); renderV(); 
 }
 
-/* --- VAULT RENDERER --- */
-function renderV() {
-    const list = document.getElementById('v-list'), data = JSON.parse(localStorage.getItem('pb_v12_vault') || '[]');
-    const filtered = data.filter(i => i.orbit === currentOrbit).reverse();
-    if (filtered.length === 0) { list.innerHTML = `<div style="opacity:0.2; text-align:center; margin-top:40px;">ARCHIVE EMPTY</div>`; return; }
-    list.innerHTML = filtered.map(i => `
-        <div class="swipe-container"><div class="del-hint">PURGE</div><div class="card" ontouchstart="ts(event)" ontouchmove="tm(event)" ontouchend="te(event, ${i.id}, 'vault')" style="border-left-color:var(--orbit-${currentOrbit})">
-            <p style="margin:0; font-size:0.9rem;">${i.text}</p>
-            ${i.type === 'audio' ? `<audio controls src="${i.data}"></audio>` : ''}
-            ${i.type === 'image' ? `<img src="${i.data}" style="width:100%; border-radius:8px; margin-top:10px;">` : ''}
-        </div></div>`).join('');
-}
-
-/* --- ORBITAL SCHEDULER --- */
+/* --- ORBITAL ENGINE --- */
 function updateShiftTimes() { localStorage.setItem('pb_shift_start', document.getElementById('work-start').value); localStorage.setItem('pb_shift_end', document.getElementById('work-end').value); pulse(10); }
 function loadShiftTimes() { document.getElementById('work-start').value = localStorage.getItem('pb_shift_start') || "09:00"; document.getElementById('work-end').value = localStorage.getItem('pb_shift_end') || "17:00"; }
 function startShiftClock() { clearInterval(shiftInterval); shiftInterval = setInterval(calculateShift, 1000); }
@@ -100,7 +87,7 @@ function calculateShift() {
     } else { document.getElementById('shift-hud').style.display = 'none'; }
 }
 
-/* --- WHITEBOARD ENGINE --- */
+/* --- WHITEBOARD --- */
 function addNote(data = null) {
     const n = document.createElement('div'); n.className = `note ${data?.type === 'image' ? 'note-img' : ''}`;
     n.style.left = data ? data.x : (Math.abs(px) + 100) + 'px'; n.style.top = data ? data.y : (Math.abs(py) + 100) + 'px';
@@ -116,17 +103,24 @@ function setupShardInteractions(n, h) {
     const rm = (e) => { if (!ir) return; let nw = (e.pageX || e.touches[0].pageX) - n.getBoundingClientRect().left, nh = (e.pageY || e.touches[0].pageY) - n.getBoundingClientRect().top; if (nw > 80) n.style.width = nw + 'px'; if (nh > 40) n.style.height = nh + 'px'; };
     const ru = () => { ir = false; saveNotes(); }; document.addEventListener('mousemove', rm); document.addEventListener('mouseup', ru); document.addEventListener('touchmove', rm, {passive:false}); document.addEventListener('touchend', ru);
 }
-function addVisualShard() { const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*'; i.onchange = e => { const r = new FileReader(); r.onload = ev => { addNote({ type: 'image', src: ev.target.result, w: '200px' }); saveNotes(); }; r.readAsDataURL(e.target.files[0]); }; i.click(); }
+function addVisualShard() { const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*'; i.onchange = e => { if(!e.target.files[0]) return; const r = new FileReader(); r.onload = ev => { addNote({ type: 'image', src: ev.target.result, w: '200px' }); saveNotes(); }; r.readAsDataURL(e.target.files[0]); }; i.click(); }
 function saveNotes() { const ns = []; document.querySelectorAll('.note').forEach(n => { const is = n.classList.contains('note-img'); ns.push({ x: n.style.left, y: n.style.top, w: n.style.width, h: n.style.height, type: is ? 'image' : 'text', src: is ? n.querySelector('img').src : null, text: is ? null : n.innerText.replace('×', '') }); }); localStorage.setItem('pb_notes', JSON.stringify(ns)); }
 function loadNotes() { const ns = JSON.parse(localStorage.getItem('pb_notes') || '[]'); ns.forEach(n => addNote(n)); }
 function updateCanvas() { document.getElementById('wb-canvas').style.transform = `translate3d(${px}px, ${py}px, 0) scale(${scale})`; }
-function initCanvas() { const c = document.getElementById('wb-page'); let d, sx, sy; c.ontouchstart = e => { if(e.target.closest('.note')) return; if(e.touches.length === 1) { sx=e.touches[0].clientX-px; sy=e.touches[0].clientY-py; } else if(e.touches.length === 2) d=Math.hypot(e.touches[0].pageX-e.touches[1].pageX, e.touches[0].pageY-e.touches[1].pageY); }; c.ontouchend = () => d=null; c.ontouchmove = e => { if(e.target.closest('.note')) return; if(e.touches.length === 1 && !d) { px=e.touches[0].clientX-sx; py=e.touches[0].clientY-sy; } else if(e.touches.length === 2) { const nd=Math.hypot(e.touches[0].pageX-e.touches[1].pageX, e.touches[0].pageY-e.touches[1].pageY); scale*=(nd/d); scale=Math.min(Math.max(0.3, scale), 2); d=nd; } updateCanvas(); }; }
+function initCanvas() { const c = document.getElementById('wb-page'); let d, sx, sy; c.ontouchstart = e => { if(e.target.closest('.note')) return; if(e.touches.length === 1) { sx=e.touches[0].clientX-px; sy=e.touches[0].clientY-py; } else if(e.touches.length === 2) d=Math.hypot(e.touches[0].pageX-e.touches[1].pageX, e.touches[0].pageY-e.touches[1].pageY); }; c.ontouchmove = e => { if(e.target.closest('.note')) return; if(e.touches.length === 1 && !d) { px=e.touches[0].clientX-sx; py=e.touches[0].clientY-sy; } else if(e.touches.length === 2) { const nd=Math.hypot(e.touches[0].pageX-e.touches[1].pageX, e.touches[0].pageY-e.touches[1].pageY); scale*=(nd/d); scale=Math.min(Math.max(0.3, scale), 2); d=nd; } updateCanvas(); }; c.ontouchend = () => d=null; }
 
-/* --- CORE SYSTEM --- */
-function addTask() { const i = document.getElementById('t-input'); if(!i.value) return; const t = JSON.parse(localStorage.getItem('pb_v12_tasks') || '[]'); t.push({ id: Date.now(), name: i.value, orbit: currentOrbit }); localStorage.setItem('pb_v12_tasks', JSON.stringify(t)); i.value = ''; renderTasks(); }
+/* --- ARCHIVE & TASKS --- */
+function renderV() {
+    const list = document.getElementById('v-list'), data = JSON.parse(localStorage.getItem('pb_v12_vault') || '[]');
+    const filtered = data.filter(i => i.orbit === currentOrbit).reverse();
+    list.innerHTML = filtered.map(i => `<div class="swipe-container"><div class="del-hint">PURGE</div><div class="card" ontouchstart="ts(event)" ontouchmove="tm(event)" ontouchend="te(event, ${i.id}, 'vault')" style="border-left-color:var(--orbit-${currentOrbit})"><p style="margin:0; font-size:0.9rem;">${i.text}</p>${i.type === 'audio' ? `<audio controls src="${i.data}"></audio>` : ''}${i.type === 'image' ? `<img src="${i.data}" style="width:100%; border-radius:8px; margin-top:10px;">` : ''}</div></div>`).join('');
+}
 function renderTasks() { const l = document.getElementById('active-list'), t = JSON.parse(localStorage.getItem('pb_v12_tasks') || '[]'); l.innerHTML = t.filter(x => x.orbit === currentOrbit).map(x => `<div class="swipe-container"><div class="del-hint">PURGE</div><div class="card" ontouchstart="ts(event)" ontouchmove="tm(event)" ontouchend="te(event, ${x.id}, 'task')" style="border-left-color:var(--orbit-${currentOrbit})"><span>${x.name}</span></div></div>`).join(''); }
+function addTask() { const i = document.getElementById('t-input'); if(!i.value) return; const t = JSON.parse(localStorage.getItem('pb_v12_tasks') || '[]'); t.push({ id: Date.now(), name: i.value, orbit: currentOrbit }); localStorage.setItem('pb_v12_tasks', JSON.stringify(t)); i.value = ''; renderTasks(); }
 function deleteTask(id) { let t = JSON.parse(localStorage.getItem('pb_v12_tasks')); localStorage.setItem('pb_v12_tasks', JSON.stringify(t.filter(i => i.id !== id))); renderTasks(); }
 function deleteVaultEntry(id) { let d = JSON.parse(localStorage.getItem('pb_v12_vault')); localStorage.setItem('pb_v12_vault', JSON.stringify(d.filter(i => i.id !== id))); renderV(); }
+
+/* --- SYSTEM --- */
 function ts(e) { tStartX = e.touches[0].clientX; currentEl = e.currentTarget; currentEl.style.transition = 'none'; }
 function tm(e) { if(!currentEl) return; let x = e.touches[0].clientX - tStartX; if(x < 0) currentEl.style.transform = `translate3d(${x}px,0,0)`; }
 function te(e, id, type) { if(!currentEl) return; let x = e.changedTouches[0].clientX - tStartX; currentEl.style.transition = 'transform 0.2s ease-out'; if(x < -120) { currentEl.style.transform = 'translate3d(-100%,0,0)'; setTimeout(() => { if(type==='task') deleteTask(id); else deleteVaultEntry(id); }, 150); } else currentEl.style.transform = 'translate3d(0,0,0)'; currentEl = null; }
