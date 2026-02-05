@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Perispace v14.7</title>
+    <title>Perispace v14.8</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
 </head>
@@ -24,7 +24,7 @@
             
             <div id="audio-hud" style="display:none; background:var(--panel); border:1px solid var(--danger); padding:10px; border-radius:10px; margin-bottom:10px; align-items:center; gap:10px;">
                 <div style="width:10px; height:10px; background:var(--danger); border-radius:50%; animation: pulse-red 1s infinite;"></div>
-                <span id="mic-status" style="font-size:0.7rem; flex:1;">RECORDING SIGNAL...</span>
+                <span style="font-size:0.7rem; flex:1;">RECORDING SIGNAL...</span>
                 <button onclick="stopRecording()" class="btn" style="width:auto; margin:0; padding:5px 10px; border-color:var(--danger); color:var(--danger);">STOP</button>
             </div>
 
@@ -68,22 +68,23 @@
         </div>
     </main>
 
-    <div id="lex-hud">
-        <h2>PERISPACE MANUAL</h2>
-        <div style="flex:1; overflow-y:auto; font-size:0.8rem; line-height:1.6;">
-            <p><b>AUDIO</b>: Convert voice to permanent shards via Sync button.</p>
-            <p><b>SPACE</b>: Shard controls only appear inside this tab. Long-drag corner to resize.</p>
-        </div>
-        <button class="btn" onclick="toggleLexicon()">CLOSE</button>
-    </div>
-
     <nav>
-        <button onclick="go('p-cap', this)">Capture</button>
+        <button onclick="go('p-cap', this)" class="active">Capture</button>
         <button onclick="go('p-vault', this)">Vault</button>
         <button onclick="go('p-tasks', this)">Plan</button>
         <button onclick="go('wb-page', this)">Space</button>
         <button onclick="go('p-sys', this)">System</button>
     </nav>
+
+    <div id="lex-hud">
+        <h2>PERISPACE MANUAL</h2>
+        <div style="flex:1; overflow-y:auto; font-size:0.8rem; line-height:1.6;">
+            <p><b>STABILIZED</b>: Tabs are now locked to the primary viewport.</p>
+            <p><b>AUDIO</b>: Playback enabled for both pending and archived signals.</p>
+        </div>
+        <button class="btn" onclick="toggleLexicon()">CLOSE</button>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
