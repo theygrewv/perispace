@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Perispace v13.8</title>
+    <title>Perispace v14.2</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
 </head>
 <body onload="boot()">
-
     <div id="orbit-nav">
         <div id="btn-inner" class="orbit-btn" onclick="setOrbit('inner')">INNER</div>
         <div id="btn-outer" class="orbit-btn" onclick="setOrbit('outer')">OUTER</div>
@@ -17,40 +16,59 @@
 
     <main>
         <div id="p-cap" class="page active">
-            <button class="btn" style="border-color:var(--danger); color:var(--danger);" onclick="alert('Signal Engaged')">📡 Capture Signal</button>
-            <div style="display:flex; gap:10px;">
-                <button class="btn" style="flex:1" onclick="triggerMedia('environment')">📸 SNAP</button>
-                <button class="btn" style="flex:1" onclick="triggerMedia()">📂 GALLERY</button>
+            <div id="audio-hud" style="display:none; background:var(--panel); border:1px solid var(--danger); padding:15px; border-radius:10px; margin-bottom:15px; align-items:center; gap:15px;">
+                <div style="width:12px; height:12px; background:var(--danger); border-radius:50%; animation: pulse 1s infinite;"></div>
+                <span style="font-size:0.8rem; flex:1;">RECORDING SIGNAL...</span>
+                <button onclick="stopRecording()" style="background:none; border:1px solid var(--danger); color:var(--danger); padding:5px 10px; border-radius:5px;">STOP</button>
             </div>
-            <textarea id="t-in" placeholder="Log context..."></textarea>
+            <div style="display:flex; gap:10px;">
+                <button id="mic-btn" class="btn" style="flex:2; border-color:var(--danger); color:var(--danger);" onclick="startRecording()">🎤 Capture Signal</button>
+                <button class="btn" style="flex:1" onclick="captureImage()">📸 SNAP</button>
+            </div>
+            <textarea id="t-in" placeholder="Translate context..."></textarea>
             <button class="btn" style="border-color:var(--accent); color:var(--accent);" onclick="saveEverything()">💾 Sync Transmission</button>
         </div>
 
         <div id="p-vault" class="page"><div id="v-list"></div></div>
         <div id="p-tasks" class="page">
-            <input type="text" id="t-input" placeholder="New target...">
-            <button class="btn" onclick="addTask()">ENGAGE</button>
+            <input type="text" id="t-input" placeholder="New target..."><button class="btn" onclick="addTask()">ENGAGE</button>
             <div id="active-list"></div>
         </div>
 
         <div id="wb-page">
             <div id="wb-canvas"></div>
-            <button onclick="addNote()" style="position:fixed; bottom:110px; right:20px; width:65px; height:65px; border-radius:50%; background:var(--accent); color:#fff; border:none; font-size:35px; z-index:300;">+</button>
+            <div id="wb-controls">
+                <button onclick="addVisualShard()" class="wb-btn" style="background:var(--gold);">🖼️</button>
+                <button onclick="addNote()" class="wb-btn" style="background:var(--accent);">+</button>
+            </div>
         </div>
 
         <div id="p-sys" class="page">
-            <button class="btn" onclick="wipe()">⚠️ WIPE CACHE</button>
+            <button class="btn" style="border-color:var(--gold); color:var(--gold);" onclick="toggleLexicon()">📖 PERISPACE MANUAL</button>
+            <div style="display:flex; gap:10px;">
+                <button class="btn" style="flex:1" onclick="exportBrain()">📤 EXPORT</button>
+                <button class="btn" style="flex:1" onclick="document.getElementById('import-file').click()">📥 IMPORT</button>
+            </div>
+            <input type="file" id="import-file" style="display:none" onchange="importBrain(this)">
+            <button class="btn" style="border-color:var(--danger); color:var(--danger); margin-top:20px;" onclick="wipe()">⚠️ WIPE CACHE</button>
         </div>
     </main>
+
+    <div id="lex-hud">
+        <h2>PERISPACE INDEX</h2>
+        <div style="flex:1; overflow-y:auto; line-height:1.6;">
+            <p><b>SPACE</b>: One finger to pan, two to zoom. Grab bottom-right of a shard to resize.</p>
+        </div>
+        <button class="btn" onclick="toggleLexicon()">CLOSE</button>
+    </div>
 
     <nav>
         <button onclick="go('p-cap', this)">Capture</button>
         <button onclick="go('p-vault', this)">Vault</button>
-        <button onclick="go('p-tasks', this)">Flight Plan</button>
+        <button onclick="go('p-tasks', this)">Plan</button>
         <button onclick="go('wb-page', this)">Space</button>
         <button onclick="go('p-sys', this)">System</button>
     </nav>
-
     <script src="script.js"></script>
 </body>
 </html>
