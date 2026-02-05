@@ -1,14 +1,21 @@
 {
+  "name": "Perispace",
   "short_name": "Perispace",
-  "name": "Peripheral Brain",
-  "start_url": "./index.html",
+  "description": "Personal workspace with vault, tasks, and infinite canvas.",
+  "start_url": "index.html",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#000000",
+  "background_color": "#222831",
+  "theme_color": "#00adb5",
+  "orientation": "any",
   "icons": [
     {
-      "src": "https://img.icons8.com/fluency/192/000000/space-exploration.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]
