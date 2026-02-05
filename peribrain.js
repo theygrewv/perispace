@@ -1,52 +1,68 @@
-// --- Vault Persistence ---
+// --- Vault & Audio Persistence ---
 const vault = document.getElementById('vault-input');
-vault.value = localStorage.getItem('perispace_vault') || '';
-vault.addEventListener('input', () => {
-    localStorage.setItem('perispace_vault', vault.value);
-});
+const audioList = document.getElementById('audio-list');
 
-// --- Audio Hub Logic ---
+// Load saved text
+vault.value = localStorage.getItem('perispace_vault') || '';
+vault.addEventListener('input', () => localStorage.setItem('perispace_vault', vault.value));
+
+// Load saved audio files on startup
+window.onload = loadSavedAudio;
+
 let mediaRecorder;
 let audioChunks = [];
-const recordBtn = document.getElementById('record-btn');
-const audioPreview = document.getElementById('audio-preview');
-const saveAudioBtn = document.getElementById('save-audio-btn');
 
-recordBtn.addEventListener('click', async () => {
-    if (!mediaRecorder || mediaRecorder.state === "inactive") {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        audioChunks = [];
+// ... [Keep the recordBtn logic from previous version] ...
 
-        mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
-        mediaRecorder.onstop = () => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/ogg; codecs=opus' });
-            const audioUrl = URL.createObjectURL(audioBlob);
-            audioPreview.src = audioUrl;
-            audioPreview.style.display = "block";
-            saveAudioBtn.style.display = "inline-block";
-        };
-
-        mediaRecorder.start();
-        recordBtn.innerText = "Stop Recording...";
-        recordBtn.style.background = "#ff4b2b"; // Red for recording
-    } else {
-        mediaRecorder.stop();
-        recordBtn.innerText = "Record Memo";
-        recordBtn.style.background = "#00adb5";
-    }
-});
-
+// Modified Save Logic
 saveAudioBtn.addEventListener('click', () => {
-    const timestamp = new Date().toLocaleString();
-    const memoEntry = `\n[Audio Memo Saved: ${timestamp}]\n---\n`;
-    vault.value += memoEntry;
-    localStorage.setItem('perispace_vault', vault.value);
+    const reader = new FileReader();
+    const audioBlob = new Blob(audioChunks, { type: 'audio/ogg; codecs=opus' });
     
-    // Reset audio hub state
-    saveAudioBtn.style.display = "none";
-    alert("Audio reference added to Vault text.");
+    reader.readAsDataURL(audioBlob); 
+    reader.onloadend = () => {
+        const base64Audio = reader.result;
+        const timestamp = new Date().toLocaleString();
+        
+        // Save to LocalStorage
+        let savedMemos = JSON.parse(localStorage.getItem('perispace_memos') || '[]');
+        savedMemos.push({ time: timestamp, data: base64Audio });
+        localStorage.setItem('perispace_memos', JSON.stringify(savedMemos));
+        
+        // Update UI
+        createAudioPlayer(timestamp, base64Audio);
+        
+        // Add text breadcrumb
+        vault.value += `\n[Audio Memo Saved: ${timestamp}]\n`;
+        localStorage.setItem('perispace_vault', vault.value);
+        
+        saveAudioBtn.style.display = "none";
+        audioPreview.style.display = "none";
+    };
 });
+
+function createAudioPlayer(time, data) {
+    const container = document.createElement('div');
+    container.className = 'saved-audio-item';
+    container.innerHTML = `
+        <small>${time}</small><br>
+        <audio controls src="${data}"></audio>
+        <button onclick="deleteAudio('${time}')" class="btn-del">Delete</button>
+    `;
+    audioList.prepend(container); // Newest on top
+}
+
+function loadSavedAudio() {
+    let savedMemos = JSON.parse(localStorage.getItem('perispace_memos') || '[]');
+    savedMemos.forEach(memo => createAudioPlayer(memo.time, memo.data));
+}
+
+function deleteAudio(time) {
+    let savedMemos = JSON.parse(localStorage.getItem('perispace_memos') || '[]');
+    savedMemos = savedMemos.filter(m => m.time !== time);
+    localStorage.setItem('perispace_memos', JSON.stringify(savedMemos));
+    location.reload(); // Refresh UI
+}
 
 // --- Task List & Timer (Previous Logic Kept) ---
 function addTask() {
