@@ -1,227 +1,243 @@
-// Updated for multi-device stability (Pixel 9 + FydeOS)
-let currentOrbit = 'inner', tStartX=0, currentEl=null, px=0, py=0, scale=1;
- currentEl=null, px=-1500, py=-1500, scale=1;
+let currentOrbit = 'inner', tStartX=0, currentEl=null, px=0, py=0, scale=1, topZ=100;
+let mediaRecorder, audioChunks = [];
 
-/** * 1. SYSTEM INITIALIZATION 
- */
 function boot() {
-    // Load last known orbit or default to Inner
     setOrbit(localStorage.getItem('pb_orbit') || 'inner');
-    
-    // Register Service Worker for PWA functionality
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js').then(() => console.log("Orbit Stable."));
-    }
-    
-    // Initialize UI
-    renderTasks();
-    renderV();
-    loadNotes();
-    initCanvas();
-    updateCanvas();
+    renderTasks(); renderV(); loadNotes(); initCanvas(); updateCanvas();
 }
 
-/** * 2. TACTILE ENGINE (Haptics & Navigation)
- */
 function pulse(ms=10) { if("vibrate" in navigator) navigator.vibrate(ms); }
 
 function go(id, btn) {
     pulse(7);
-    // Hide all pages
     document.querySelectorAll('.page, #wb-page').forEach(p => p.style.display = 'none');
-    // Deactivate nav buttons
     document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-    
     const target = document.getElementById(id);
-    if(target) {
-        // Space uses block for the canvas, others use Flex for layout
-        target.style.display = (id === 'wb-page' ? 'block' : 'flex');
-    }
+    if(target) target.style.display = (id === 'wb-page' ? 'block' : 'flex');
     btn.classList.add('active');
 }
 
 function setOrbit(o) {
-    pulse(15);
-    currentOrbit = o;
-    localStorage.setItem('pb_orbit', o);
-    
-    // Update Orbit HUD
+    pulse(15); currentOrbit = o; localStorage.setItem('pb_orbit', o);
     document.querySelectorAll('.orbit-btn').forEach(b => b.classList.remove('active'));
-    const activeBtn = document.getElementById(`btn-${o}`);
-    if(activeBtn) activeBtn.classList.add('active');
-    
-    // Refresh Data
-    renderTasks();
-    renderV();
+    document.getElementById(`btn-${o}`).classList.add('active');
+    renderTasks(); renderV();
 }
 
-/** * 3. UNIVERSAL SWIPE-TO-PURGE ENGINE
- */
-function ts(e) { 
-    tStartX = e.touches[0].clientX; 
-    currentEl = e.currentTarget; 
-    currentEl.style.transition = 'none'; 
+/* --- MEDIA ENGINES --- */
+async function startRecording() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.onstop = () => {
+            const reader = new FileReader();
+            reader.readAsDataURL(new Blob(audioChunks)); 
+            reader.onloadend = () => saveSignal(reader.result, 'audio');
+            stream.getTracks().forEach(t => t.stop());
+        };
+        mediaRecorder.start(); pulse(50);
+        document.getElementById('audio-hud').style.display = 'flex';
+    } catch (err) { alert("Mic Denied."); }
 }
 
-function tm(e) { 
-    if(!currentEl) return;
-    let x = e.touches[0].clientX - tStartX;
-    if(x < 0) { // Only swipe left
-        currentEl.style.transform = `translate3d(${x}px,0,0)`;
-        if(x < -100) pulse(5); // Warning vibration
-    }
+function stopRecording() { if (mediaRecorder?.state !== "inactive") { mediaRecorder.stop(); document.getElementById('audio-hud').style.display = 'none'; pulse(20); } }
+
+function captureImage() {
+    const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*'; i.capture = 'environment';
+    i.onchange = e => {
+        const r = new FileReader();
+        r.onload = ev => saveSignal(ev.target.result, 'image');
+        r.readAsDataURL(e.target.files[0]);
+    }; i.click();
 }
 
-function te(e, id, type) {
-    if(!currentEl) return;
-    let x = e.changedTouches[0].clientX - tStartX;
-    currentEl.style.transition = 'transform 0.2s ease-out';
-    
-    if(x < -120) { // Threshold for deletion
-        currentEl.style.transform = 'translate3d(-100%,0,0)';
-        pulse(25); // Thump feedback
-        setTimeout(() => { 
-            if(type === 'task') deleteTask(id); 
-            else deleteVault(id); 
-        }, 150);
-    } else {
-        currentEl.style.transform = 'translate3d(0,0,0)';
-    }
-    currentEl = null;
-}
-
-/** * 4. MISSION & VAULT LOGIC
- */
-function saveEverything() {
-    const input = document.getElementById('t-in');
-    if(!input.value) return;
-    pulse(15);
+function saveSignal(data, type) {
     const v = JSON.parse(localStorage.getItem('pb_v12_vault') || '[]');
-    v.push({ id: Date.now(), orbit: currentOrbit, text: input.value });
-    localStorage.setItem('pb_v12_vault', JSON.stringify(v));
-    input.value = '';
-    renderV();
+    v.push({ id: Date.now(), orbit: currentOrbit, type, data, text: type.toUpperCase() + " SHARD: " + new Date().toLocaleTimeString() });
+    localStorage.setItem('pb_v12_vault', JSON.stringify(v)); renderV();
 }
 
-function renderV() {
-    const list = document.getElementById('v-list');
-    const data = JSON.parse(localStorage.getItem('pb_v12_vault') || '[]');
-    list.innerHTML = data.filter(i => i.orbit === currentOrbit).reverse().map(i => `
-        <div class="swipe-container">
-            <div class="del-hint">PURGE</div>
-            <div class="card" ontouchstart="ts(event)" ontouchmove="tm(event)" ontouchend="te(event, ${i.id}, 'vault')" style="border-left-color:var(--orbit-${currentOrbit})">
-                <p>${i.text}</p>
-            </div>
-        </div>`).join('');
-}
-
-function deleteVault(id) {
-    let d = JSON.parse(localStorage.getItem('pb_v12_vault'));
-    localStorage.setItem('pb_v12_vault', JSON.stringify(d.filter(i => i.id !== id)));
-    renderV();
-}
-
-function addTask() {
-    const input = document.getElementById('t-input');
-    if(!input.value) return;
-    pulse(10);
-    const t = JSON.parse(localStorage.getItem('pb_v12_tasks') || '[]');
-    t.push({ id: Date.now(), name: input.value, orbit: currentOrbit });
-    localStorage.setItem('pb_v12_tasks', JSON.stringify(t));
-    input.value = '';
-    renderTasks();
-}
-
-function renderTasks() {
-    const list = document.getElementById('active-list');
-    const tasks = JSON.parse(localStorage.getItem('pb_v12_tasks') || '[]');
-    list.innerHTML = tasks.filter(x => x.orbit === currentOrbit).map(x => `
-        <div class="swipe-container">
-            <div class="del-hint">PURGE</div>
-            <div class="card" ontouchstart="ts(event)" ontouchmove="tm(event)" ontouchend="te(event, ${x.id}, 'task')" style="border-left-color:var(--orbit-${currentOrbit})">
-                <span>${x.name}</span>
-            </div>
-        </div>`).join('');
-}
-
-function deleteTask(id) {
-    let t = JSON.parse(localStorage.getItem('pb_v12_tasks'));
-    localStorage.setItem('pb_v12_tasks', JSON.stringify(t.filter(i => i.id !== id)));
-    renderTasks();
-}
-
-/** * 5. INFINITE SPACE (Whiteboard)
- */
-function addNote(d=null) {
-    pulse(10);
+/* --- WHITEBOARD ENGINE --- */
+function addNote(data = null) {
     const n = document.createElement('div');
-    n.className = 'note';
-    n.style.left = d ? d.x : '500px';
-    n.style.top = d ? d.y : '500px';
-    n.innerHTML = `<div contenteditable="true" oninput="saveNotes()">${d ? d.text : 'Shard'}</div>`;
+    n.className = `note ${data?.type === 'image' ? 'note-img' : ''}`;
+    n.style.left = data ? data.x : (Math.abs(px) + 100) + 'px';
+    n.style.top = data ? data.y : (Math.abs(py) + 100) + 'px';
+    n.style.width = data?.w || '200px';
+    n.style.height = data?.h || 'auto';
+    n.style.zIndex = ++topZ;
+
+    if (data?.type === 'image') {
+        n.innerHTML = `<img src="${data.src}">`;
+    } else {
+        n.innerHTML = `<div class="note-text" contenteditable="true" oninput="saveNotes()">${data ? data.text : 'New Shard'}</div>`;
+    }
+
+    const del = document.createElement('div');
+    del.className = 'del-shard'; del.innerText = '×';
+    del.onclick = (e) => { e.stopPropagation(); n.remove(); saveNotes(); pulse(20); };
+    n.appendChild(del);
+
+    const handle = document.createElement('div');
+    handle.className = 'resize-handle';
+    n.appendChild(handle);
+
     document.getElementById('wb-canvas').appendChild(n);
-    n.ontouchstart = e => { e.stopPropagation(); };
+    setupShardInteractions(n, handle);
+}
+
+function setupShardInteractions(n, handle) {
+    let isResizing = false;
+
+    handle.onmousedown = handle.ontouchstart = (e) => {
+        isResizing = true; e.stopPropagation(); e.preventDefault();
+    };
+
+    n.onmousedown = n.ontouchstart = (e) => {
+        n.style.zIndex = ++topZ;
+        if (isResizing || e.target.className === 'del-shard') return;
+        let sx = (e.pageX || e.touches[0].pageX) - n.offsetLeft;
+        let sy = (e.pageY || e.touches[0].pageY) - n.offsetTop;
+
+        const move = (me) => {
+            n.style.left = ((me.pageX || me.touches[0].pageX) - sx) + 'px';
+            n.style.top = ((me.pageY || me.touches[0].pageY) - sy) + 'px';
+        };
+
+        const up = () => {
+            document.removeEventListener('mousemove', move);
+            document.removeEventListener('mouseup', up);
+            document.removeEventListener('touchmove', move);
+            document.removeEventListener('touchend', up);
+            saveNotes();
+        };
+
+        document.addEventListener('mousemove', move);
+        document.addEventListener('mouseup', up);
+        document.addEventListener('touchmove', move, {passive:false});
+        document.addEventListener('touchend', up);
+    };
+
+    const resizeMove = (e) => {
+        if (!isResizing) return;
+        let nw = (e.pageX || e.touches[0].pageX) - n.getBoundingClientRect().left;
+        let nh = (e.pageY || e.touches[0].pageY) - n.getBoundingClientRect().top;
+        if (nw > 80) n.style.width = nw + 'px';
+        if (nh > 40) n.style.height = nh + 'px';
+    };
+
+    const resizeUp = () => { isResizing = false; saveNotes(); };
+
+    document.addEventListener('mousemove', resizeMove);
+    document.addEventListener('mouseup', resizeUp);
+    document.addEventListener('touchmove', resizeMove, {passive:false});
+    document.addEventListener('touchend', resizeUp);
+}
+
+function addVisualShard() {
+    const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*';
+    i.onchange = e => {
+        const r = new FileReader();
+        r.onload = ev => {
+            addNote({ type: 'image', src: ev.target.result, w: '200px', h: 'auto' });
+            saveNotes();
+        }; r.readAsDataURL(e.target.files[0]);
+    }; i.click();
 }
 
 function saveNotes() {
-    const notes = [];
+    const ns = [];
     document.querySelectorAll('.note').forEach(n => {
-        notes.push({ x: n.style.left, y: n.style.top, text: n.innerText });
+        const isImg = n.classList.contains('note-img');
+        ns.push({
+            x: n.style.left, y: n.style.top, w: n.style.width, h: n.style.height,
+            type: isImg ? 'image' : 'text',
+            src: isImg ? n.querySelector('img').src : null,
+            text: isImg ? null : n.querySelector('.note-text').innerText
+        });
     });
-    localStorage.setItem('pb_notes', JSON.stringify(notes));
+    localStorage.setItem('pb_notes', JSON.stringify(ns));
 }
 
 function loadNotes() {
-    const notes = JSON.parse(localStorage.getItem('pb_notes') || '[]');
-    notes.forEach(n => addNote(n));
+    const ns = JSON.parse(localStorage.getItem('pb_notes') || '[]');
+    ns.forEach(n => addNote(n));
 }
 
-function updateCanvas() {
-    document.getElementById('wb-canvas').style.transform = `translate3d(${px}px, ${py}px, 0) scale(${scale})`;
-}
-
+/* --- CANVAS ENGINE --- */
+function updateCanvas() { document.getElementById('wb-canvas').style.transform = `translate3d(${px}px, ${py}px, 0) scale(${scale})`; }
 function initCanvas() {
-    const c = document.getElementById('wb-page');
-    let d, sx, sy;
-    c.ontouchstart = e => {
+    const c = document.getElementById('wb-page'); let d, sx, sy;
+    c.ontouchstart = e => { 
         if(e.target.closest('.note')) return;
-        if(e.touches.length === 1) {
-            sx = e.touches[0].clientX - px;
-            sy = e.touches[0].clientY - py;
-        } else if(e.touches.length === 2) {
-            d = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-        }
+        if(e.touches.length === 1) { sx=e.touches[0].clientX-px; sy=e.touches[0].clientY-py; }
+        else if(e.touches.length === 2) d=Math.hypot(e.touches[0].pageX-e.touches[1].pageX, e.touches[0].pageY-e.touches[1].pageY);
     };
     c.ontouchmove = e => {
         if(e.target.closest('.note')) return;
-        if(e.touches.length === 1 && !d) {
-            px = e.touches[0].clientX - sx;
-            py = e.touches[0].clientY - sy;
-        } else if(e.touches.length === 2) {
-            const nd = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-            scale *= (nd / d);
-            scale = Math.min(Math.max(0.3, scale), 2);
-            d = nd;
+        if(e.touches.length === 1 && !d) { px=e.touches[0].clientX-sx; py=e.touches[0].clientY-sy; }
+        else if(e.touches.length === 2) {
+            const nd=Math.hypot(e.touches[0].pageX-e.touches[1].pageX, e.touches[0].pageY-e.touches[1].pageY);
+            scale*=(nd/d); scale=Math.min(Math.max(0.3, scale), 2); d=nd;
         }
         updateCanvas();
     };
-    c.ontouchend = () => d = null;
+    c.ontouchend = () => d=null;
 }
 
-/** * 6. MEDIA & SYSTEM
- */
-function triggerMedia(m=null) {
-    pulse(15);
-    const i = document.createElement('input');
-    i.type = 'file';
-    i.accept = 'image/*';
-    if(m) i.capture = m;
-    i.click();
+/* --- CORE LOGIC --- */
+function saveEverything() { 
+    const i = document.getElementById('t-in'); if(!i.value) return; pulse(15);
+    const v = JSON.parse(localStorage.getItem('pb_v12_vault') || '[]'); 
+    v.push({ id: Date.now(), orbit: currentOrbit, type: 'text', text: i.value }); 
+    localStorage.setItem('pb_v12_vault', JSON.stringify(v)); i.value = ''; renderV(); 
 }
 
-function wipe() {
-    if(confirm("Erase all local context? This cannot be undone.")) {
-        localStorage.clear();
+function renderV() {
+    const l = document.getElementById('v-list'), d = JSON.parse(localStorage.getItem('pb_v12_vault') || '[]');
+    l.innerHTML = d.filter(i => i.orbit === currentOrbit).reverse().map(i => `
+        <div class="swipe-container"><div class="del-hint">PURGE</div><div class="card" ontouchstart="ts(event)" ontouchmove="tm(event)" ontouchend="te(event, ${i.id}, 'vault')" style="border-left-color:var(--orbit-${currentOrbit})">
+            <p>${i.text}</p>
+            ${i.type === 'audio' ? `<audio controls src="${i.data}" style="width:100%; filter:invert(1);"></audio>` : ''}
+            ${i.type === 'image' ? `<img src="${i.data}" style="width:100%; border-radius:8px; margin-top:10px;">` : ''}
+        </div></div>`).join('');
+}
+
+/* --- SHARED SYSTEM --- */
+function ts(e) { tStartX = e.touches[0].clientX; currentEl = e.currentTarget; currentEl.style.transition = 'none'; }
+function tm(e) { if(!currentEl) return; let x = e.touches[0].clientX - tStartX; if(x < 0) currentEl.style.transform = `translate3d(${x}px,0,0)`; }
+function te(e, id, type) {
+    if(!currentEl) return; let x = e.changedTouches[0].clientX - tStartX;
+    currentEl.style.transition = 'transform 0.2s ease-out';
+    if(x < -120) { currentEl.style.transform = 'translate3d(-100%,0,0)'; pulse(25); setTimeout(() => { if(type==='task') deleteTask(id); else deleteVaultEntry(id); }, 150); } 
+    else currentEl.style.transform = 'translate3d(0,0,0)';
+    currentEl = null;
+}
+
+function addTask() { 
+    const i = document.getElementById('t-input'); if(!i.value) return; pulse(10); 
+    const t = JSON.parse(localStorage.getItem('pb_v12_tasks') || '[]'); 
+    t.push({ id: Date.now(), name: i.value, orbit: currentOrbit }); 
+    localStorage.setItem('pb_v12_tasks', JSON.stringify(t)); i.value = ''; renderTasks(); 
+}
+function renderTasks() { 
+    const l = document.getElementById('active-list'), t = JSON.parse(localStorage.getItem('pb_v12_tasks') || '[]'); 
+    l.innerHTML = t.filter(x => x.orbit === currentOrbit).map(x => `<div class="swipe-container"><div class="del-hint">PURGE</div><div class="card" ontouchstart="ts(event)" ontouchmove="tm(event)" ontouchend="te(event, ${x.id}, 'task')" style="border-left-color:var(--orbit-${currentOrbit})"><span>${x.name}</span></div></div>`).join(''); 
+}
+function deleteTask(id) { let t = JSON.parse(localStorage.getItem('pb_v12_tasks')); localStorage.setItem('pb_v12_tasks', JSON.stringify(t.filter(i => i.id !== id))); renderTasks(); }
+function deleteVaultEntry(id) { let d = JSON.parse(localStorage.getItem('pb_v12_vault')); localStorage.setItem('pb_v12_vault', JSON.stringify(d.filter(i => i.id !== id))); renderV(); }
+function toggleLexicon() { pulse(10); const h = document.getElementById('lex-hud'); h.style.display = (h.style.display==='flex'?'none':'flex'); }
+function exportBrain() { const data = { vault: localStorage.getItem('pb_v12_vault'), tasks: localStorage.getItem('pb_v12_tasks'), notes: localStorage.getItem('pb_notes') }; const blob = new Blob([JSON.stringify(data)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `perispace_backup.json`; a.click(); }
+function importBrain(input) {
+    const reader = new FileReader();
+    reader.onload = function() {
+        const d = JSON.parse(reader.result);
+        if(d.vault) localStorage.setItem('pb_v12_vault', d.vault);
+        if(d.tasks) localStorage.setItem('pb_v12_tasks', d.tasks);
+        if(d.notes) localStorage.setItem('pb_notes', d.notes);
         location.reload();
-    }
+    }; reader.readAsText(input.files[0]);
 }
+function wipe() { if(confirm("Wipe cache?")) { localStorage.clear(); location.reload(); } }
