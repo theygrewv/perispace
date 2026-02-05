@@ -24,24 +24,28 @@
 
         <div class="workspace-grid">
             <section class="module vault-module">
-                <div class="module-header">
-                    <h3>Media & Data Vault</h3>
-                    <div class="capture-actions">
-                        <button id="record-btn" class="btn-action">Mic</button>
-                        <button id="camera-btn" class="btn-action">Cam</button>
-                        <label class="btn-action">Pick<input type="file" id="media-picker" hidden></label>
-                    </div>
-                </div>
+          <div class="module-header">
+    <h3>Media & Data Vault</h3>
+    <div class="capture-actions">
+        <button id="record-btn" class="btn-action">Mic</button>
+        <button id="camera-btn" class="btn-action">Open Cam</button>
+        <label class="btn-action">Pick<input type="file" id="media-picker" hidden></label>
+    </div>
+</div>
 
-                <div id="capture-preview-zone" style="display:none;">
-                    <video id="camera-stream" autoplay playsinline style="display:none;"></video>
-                    <canvas id="photo-cap" style="display:none;"></canvas>
-                    <audio id="audio-preview" controls style="display:none;"></audio>
-                    <img id="image-preview" style="display:none;">
-                    
-                    <input type="text" id="media-caption" placeholder="Add text to this media...">
-                    <button id="commit-btn" class="btn-save">Commit to Vault</button>
-                </div>
+<div id="capture-preview-zone" style="display:none;">
+    <div class="video-container">
+        <video id="camera-stream" autoplay playsinline></video>
+        <button id="shutter-btn" class="btn-shutter" style="display:none;">SNAP</button>
+    </div>
+    
+    <canvas id="photo-cap" style="display:none;"></canvas>
+    <audio id="audio-preview" controls style="display:none;"></audio>
+    <img id="image-preview" style="display:none;">
+    
+    <input type="text" id="media-caption" placeholder="Add text/notes to this media...">
+    <button id="commit-btn" class="btn-save">Commit to Vault</button>
+</div>
 
                 <textarea id="vault-input" placeholder="Initiate data entry..."></textarea>
                 
