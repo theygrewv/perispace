@@ -3,44 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perispace - Peribrain</title>
+    <title>Perispace | Mission Control</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="main-container">
-    <header class="peribrain-header">
-        <h2>Peribrain Control</h2>
-        <div class="timer-section">
-            <button onclick="startTimer(15, 'Short Break')" class="btn">15m Break</button>
-            <button onclick="startTimer(60, 'Lunch Break')" class="btn btn-outline">1hr Lunch</button>
-            <div id="timer-display">Ready</div>
-        </div>
-    </header>
+    <div class="stars-overlay"></div>
 
-    <main class="content-grid">
-    <section class="card vault">
-        <h3>Vault & Audio Hub</h3>
-        <div class="audio-controls">
-            <button id="record-btn" class="btn">Record Memo</button>
-            <audio id="audio-preview" controls style="display:none;"></audio>
-            <button id="save-audio-btn" class="btn btn-outline" style="display:none;">Save to Vault</button>
-        </div>
-        
-        <textarea id="vault-input" placeholder="Notes..."></textarea>
+    <div class="main-container">
+        <header class="peribrain-header" id="main-header">
+            <div id="status-light"></div>
+            <div class="status-badge">SYSTEMS: ONLINE</div>
+            <h1>PERIBRAIN</h1>
+            <div class="timer-hub">
+                <button onclick="startTimer(15, 'Short Break')" class="btn-timer">15m Break</button>
+                <button onclick="startTimer(60, 'Lunch Break')" class="btn-timer lunch">1hr Lunch</button>
+                <div id="timer-display">00:00</div>
+            </div>
+        </header>
 
-        <div id="media-gallery">
-            <h4>Saved Audio Memos</h4>
-            <div id="audio-list"></div>
-        </div>
-    </section>
-    
-    </main>
-</div>
+        <div class="workspace-grid">
+            <section class="module vault-module">
+                <div class="module-header">
+                    <h3>Media & Data Vault</h3>
+                    <div class="capture-actions">
+                        <button id="record-btn" class="btn-action">Mic</button>
+                        <button id="camera-btn" class="btn-action">Cam</button>
+                        <label class="btn-action">Pick<input type="file" id="media-picker" hidden></label>
+                    </div>
+                </div>
 
-<audio id="alert-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
-<script src="peribrain.js"></script>
-        </main>
+                <div id="capture-preview-zone" style="display:none;">
+                    <video id="camera-stream" autoplay playsinline style="display:none;"></video>
+                    <canvas id="photo-cap" style="display:none;"></canvas>
+                    <audio id="audio-preview" controls style="display:none;"></audio>
+                    <img id="image-preview" style="display:none;">
+                    
+                    <input type="text" id="media-caption" placeholder="Add text to this media...">
+                    <button id="commit-btn" class="btn-save">Commit to Vault</button>
+                </div>
+
+                <textarea id="vault-input" placeholder="Initiate data entry..."></textarea>
+                
+                <div id="media-gallery">
+                    <div id="audio-list"></div>
+                </div>
+            </section>
+
+            <section class="module task-module">
+                <h3>Mission Objectives</h3>
+                <div class="input-group">
+                    <input type="text" id="new-task" placeholder="Add objective...">
+                    <button onclick="addTask()" class="btn-add">+</button>
+                </div>
+                <ul id="task-list"></ul>
+            </section>
+        </div>
     </div>
 
     <audio id="alert-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
